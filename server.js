@@ -44,6 +44,20 @@ app.post('/todos', function(req, res){
     res.json(body);
 });
 
+app.delete('/todos/:id', function(req,res){
+    var todoId = parseInt(req.params.id);
+    var requestedItem = _.findWhere(todos, {id: todoId});
+    var modifiedTodos = _.without(todos, requestedItem);
+
+    if(requestedItem){
+        todos = modifiedTodos;
+        res.json(modifiedTodos);
+    }else{
+        res.status(400).json({"ERROR": "That shit doesn't exist bro. Try a different ID."});
+    }
+
+});
+
 app.listen(PORT, function(){
     console.log("Express listening on port: " + PORT);
 });
