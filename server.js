@@ -25,6 +25,12 @@ app.get('/todos',function(req, res){
     }else if(qProp && queryParams.completed === 'false'){
         filteredTodos = _.where(filteredTodos, {completed: false});
     }
+
+    if(queryParams.hasOwnProperty('q') && queryParams.q.length > 0){
+        filteredTodos = _.filter(filteredTodos, function(todo){
+            return todo.description.indexOf(queryParams.q) > -1;
+        });
+    }
     res.json(filteredTodos);
 })
 
@@ -75,14 +81,14 @@ app.put('/todos/:id', function(req, res){
     var body = _.pick(req.body, 'description', 'completed');
     var c = _.isBoolean(body.completed);
     var d = _.isString(body.description);
-    var dLength = body.description.trim().length > 0;
+    var dLength = d && body.description.trim().length > 0;
     var newAttributes = {};
 
     if(!requestedItem){
         return res.status(404).send();
     }
 
-    if(body.hasOwnProperty('description') && d && dLength){
+    if(body.hasOwnProperty('description') && dLength){
         newAttributes.description = body.description;
     }else if(body.hasOwnProperty('description')){
         return res.status(400).send();
@@ -101,3 +107,7 @@ app.put('/todos/:id', function(req, res){
 app.listen(PORT, function(){
     console.log("Express listening on port: " + PORT);
 });
+
+
+
+
