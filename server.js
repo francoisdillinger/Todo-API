@@ -114,15 +114,40 @@ app.post('/todos', function(req, res){
 
 app.delete('/todos/:id', function(req,res){
     var todoId = parseInt(req.params.id);
-    var requestedItem = _.findWhere(todos, {id: todoId});
-    var modifiedTodos = _.without(todos, requestedItem);
 
-    if(requestedItem){
-        todos = modifiedTodos;
-        res.json(modifiedTodos);
-    }else{
-        res.status(400).json({"ERROR": "That shit doesn't exist bro. Try a different ID."});
-    }
+    db.todo.destroy({
+        where: {
+            id: todoId
+        }
+    }).then(function(deletedRows){
+        if(deletedRows === 0){
+            res.status(404).json({error: 'No todo found with that ID.'});
+        }else{
+            res.status(204).send();
+        }
+    }).catch(function(e){
+        res.status(500).send();
+    });
+
+    // db.todo.findById(todoId).then(function(todo){
+    //     if(!!todo){
+    //         res.json(todo.toJSON());
+    //         todo.destroy({ force: true });
+    //     }else{
+    //         res.send('No matching todo found.');
+    //     }
+    // }).catch(function(e){
+    //     res.status(404).send();
+    // });
+    // var requestedItem = _.findWhere(todos, {id: todoId});
+    // var modifiedTodos = _.without(todos, requestedItem);
+
+    // if(requestedItem){
+    //     todos = modifiedTodos;
+    //     res.json(modifiedTodos);
+    // }else{
+    //     res.status(400).json({"ERROR": "That shit doesn't exist bro. Try a different ID."});
+    // }
 
 });
 
