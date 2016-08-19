@@ -118,6 +118,9 @@ app.delete('/todos/:id', function(req,res){
     db.todo.destroy({
         where: {
             id: todoId
+        },
+        paranoid: {
+            force: true
         }
     }).then(function(deletedRows){
         if(deletedRows === 0){
@@ -153,31 +156,32 @@ app.delete('/todos/:id', function(req,res){
 
 app.put('/todos/:id', function(req, res){
     var todoId = parseInt(req.params.id);
-    var requestedItem = _.findWhere(todos, {id: todoId});
+    // var requestedItem = _.findWhere(todos, {id: todoId});
     var body = _.pick(req.body, 'description', 'completed');
-    var c = _.isBoolean(body.completed);
-    var d = _.isString(body.description);
-    var dLength = d && body.description.trim().length > 0;
+    // var c = _.isBoolean(body.completed);
+    // var d = _.isString(body.description);
+    // var dLength = d && body.description.trim().length > 0;
     var newAttributes = {};
 
-    if(!requestedItem){
-        return res.status(404).send();
-    }
-
-    if(body.hasOwnProperty('description') && dLength){
+    if(body.hasOwnProperty('description')){
         newAttributes.description = body.description;
-    }else if(body.hasOwnProperty('description')){
-        return res.status(400).send();
     }
 
-    if(body.hasOwnProperty('completed') && c){
+    if(body.hasOwnProperty('completed')){
         newAttributes.completed = body.completed;
-    }else if(body.hasOwnProperty('completed')){
-        return res.status(400).send();
     }
 
-    _.extend(requestedItem, newAttributes);
-    res.json(requestedItem);
+    db.todo.findById(todoId).then(function(todo){
+        if(todo){
+            todo.update(newAttributes).then(function(todo){
+                res.json(todo.toJSON());
+            });
+        }else{
+            res.status(404).json({error: "No todo found by that ID."});
+        }
+    }).catch(function(e){
+        res.status(400).json(e);
+    })
 });
 
 db.sequelize.sync().then(function(){
